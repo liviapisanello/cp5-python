@@ -23,14 +23,14 @@ class MongoPipeline:
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
         # Ensure uniqueness on 'link' to avoid duplicate articles
-        self.db["jogos"].create_index([("link", pymongo.ASCENDING)], unique=True)
+        self.db["noticias"].create_index([("link", pymongo.ASCENDING)], unique=True)
 
     def close_spider(self, spider):
         self.client.close()
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        self.db["jogos"].update_one(
+        self.db["noticias"].update_one(
             {"link": adapter["link"]},
             {"$set": dict(adapter)},
             upsert=True,
