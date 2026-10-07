@@ -1,175 +1,485 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-bs-theme="dark">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Books Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Books</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
   <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg-primary: #0f0f1a;
-      --bg-card: #1a1a2e;
-      --bg-card-hover: #1e1e35;
-      --accent-purple: #8b5cf6;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-yellow: #f59e0b;
-      --accent-red: #ef4444;
-      --text-primary: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-color: rgba(255,255,255,0.08);
+      --bg:          #080812;
+      --bg2:         #0e0e1c;
+      --bg3:         #13132a;
+      --glass:       rgba(255,255,255,0.04);
+      --glass-border:rgba(255,255,255,0.08);
+      --glass-hover: rgba(255,255,255,0.07);
+      --p1: #a78bfa;   /* violet */
+      --p2: #818cf8;   /* indigo */
+      --p3: #60a5fa;   /* blue */
+      --p4: #34d399;   /* emerald */
+      --p5: #fbbf24;   /* amber */
+      --p6: #f87171;   /* red */
+      --txt:  #e2e8f0;
+      --txt2: #94a3b8;
+      --txt3: #64748b;
+      --radius: 18px;
+      --radius-sm: 10px;
     }
-    body { background: var(--bg-primary); font-family: 'Inter', sans-serif; color: var(--text-primary); }
-    .navbar-brand { font-weight: 700; font-size: 1.3rem; letter-spacing: -0.02em; }
-    .navbar { background: rgba(15,15,26,0.95) !important; backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background Orbs ────────────────────────────── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: .18;
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 600px; height: 600px; background: #7c3aed; top: -200px; left: -200px; }
+    .orb-2 { width: 500px; height: 500px; background: #2563eb; top: 40%; right: -150px; animation-delay: -6s; }
+    .orb-3 { width: 400px; height: 400px; background: #059669; bottom: -150px; left: 30%; animation-delay: -12s; }
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.08); }
+    }
+
+    /* ── Layout wrapper ──────────────────────────────────────── */
+    .layout { position: relative; z-index: 1; }
+
+    /* ── Topbar ──────────────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      background: rgba(8,8,18,.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: .65rem;
+      font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em;
+      background: linear-gradient(120deg, var(--p1), var(--p3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .topbar-logo .icon-wrap {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--p1), var(--p3));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: .95rem; flex-shrink: 0;
+      -webkit-text-fill-color: white;
+    }
+    .topbar-meta {
+      font-size: .75rem; color: var(--txt3);
+      display: flex; align-items: center; gap: 1.25rem;
+    }
+    .topbar-meta .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--p4); display: inline-block; margin-right: .35rem;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ── Page ────────────────────────────────────────────────── */
+    .page { padding: 2rem 2.25rem 4rem; max-width: 1440px; margin: 0 auto; }
+
+    /* ── Section label ───────────────────────────────────────── */
+    .section-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--glass-border);
+    }
+
+    /* ── Glass card ──────────────────────────────────────────── */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background .2s, box-shadow .2s, transform .2s;
+    }
+    .glass:hover { background: var(--glass-hover); }
+
+    /* ── KPI Grid ────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 500px) { .kpi-grid { grid-template-columns: 1fr; } }
+
     .kpi-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: transform 0.2s, box-shadow 0.2s;
+      padding: 1.4rem 1.5rem;
       cursor: default;
+      position: relative;
+      overflow: hidden;
     }
-    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
-    .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-    .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1.2; margin-top: 0.75rem; }
-    .kpi-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
-    .chart-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
     }
-    .chart-title { font-weight: 600; font-size: 1rem; }
-    .chart-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-    .filter-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.4); }
+
+    .kpi-c1::before { background: linear-gradient(90deg, var(--p3), var(--p2)); }
+    .kpi-c2::before { background: linear-gradient(90deg, var(--p4), #059669); }
+    .kpi-c3::before { background: linear-gradient(90deg, var(--p5), #f59e0b); }
+    .kpi-c4::before { background: linear-gradient(90deg, var(--p1), var(--p2)); }
+
+    .kpi-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 1rem;
     }
-    .form-control, .form-select {
-      background: rgba(255,255,255,0.05) !important;
-      border: 1px solid var(--border-color) !important;
-      color: var(--text-primary) !important;
+    .kpi-c1 .kpi-icon { background: rgba(96,165,250,.12); color: var(--p3); }
+    .kpi-c2 .kpi-icon { background: rgba(52,211,153,.12); color: var(--p4); }
+    .kpi-c3 .kpi-icon { background: rgba(251,191,36,.12); color: var(--p5); }
+    .kpi-c4 .kpi-icon { background: rgba(167,139,250,.12); color: var(--p1); }
+
+    .kpi-val {
+      font-size: 2.1rem; font-weight: 800; line-height: 1;
+      letter-spacing: -.03em;
     }
-    .form-control:focus, .form-select:focus {
-      border-color: var(--accent-purple) !important;
-      box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important;
+    .kpi-c1 .kpi-val { color: var(--p3); }
+    .kpi-c2 .kpi-val { color: var(--p4); }
+    .kpi-c3 .kpi-val { color: var(--p5); }
+    .kpi-c4 .kpi-val { color: var(--p1); }
+
+    .kpi-lbl {
+      font-size: .75rem; font-weight: 600; color: var(--txt2);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-top: .35rem;
     }
-    .btn-primary { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; }
-    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-    table { font-size: 0.875rem; }
-    .badge-disponivel { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
-    .badge-indisponivel { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
-    .stars { color: #f59e0b; }
-    .book-thumb { width: 36px; height: 50px; object-fit: cover; border-radius: 4px; }
-    .table { --bs-table-bg: transparent; }
-    .table tbody tr:hover { background: rgba(255,255,255,0.03); }
-    .page-link { background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); }
-    .page-link:hover { background: rgba(139,92,246,0.2); border-color: var(--accent-purple); color: var(--accent-purple); }
-    .page-item.active .page-link { background: var(--accent-purple); border-color: var(--accent-purple); }
-    .section-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
-    .gradient-text { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .spinner-overlay { display: flex; align-items: center; justify-content: center; height: 200px; }
+    .kpi-sub { font-size: .7rem; color: var(--txt3); margin-top: .15rem; }
+
+    /* ── Chart grid ──────────────────────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+
+    .chart-card { padding: 1.4rem 1.5rem; }
+    .chart-head { margin-bottom: 1rem; }
+    .chart-head .title { font-size: .95rem; font-weight: 700; color: var(--txt); }
+    .chart-head .sub   { font-size: .75rem; color: var(--txt3); margin-top: 2px; }
+    .chart-wrap { position: relative; height: 280px; }
+
+    /* ── Filter bar ──────────────────────────────────────────── */
+    .filter-card { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+
+    .filter-label {
+      font-size: .72rem; font-weight: 600; color: var(--txt3);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-bottom: .4rem; display: block;
+    }
+
+    .f-control {
+      width: 100%; padding: .5rem .85rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--txt); font-size: .85rem; font-family: inherit;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      appearance: none;
+    }
+    .f-control::placeholder { color: var(--txt3); }
+    .f-control:focus {
+      border-color: var(--p1);
+      box-shadow: 0 0 0 3px rgba(167,139,250,.18);
+    }
+    select.f-control option { background: #1a1a2e; color: var(--txt); }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr auto auto;
+      gap: .75rem;
+      align-items: end;
+    }
+    @media (max-width: 900px) { .filter-row { grid-template-columns: 1fr 1fr; } }
+
+    .check-wrap {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .5rem 0; cursor: pointer; user-select: none;
+    }
+    .check-wrap input[type=checkbox] {
+      width: 16px; height: 16px; accent-color: var(--p1); cursor: pointer;
+    }
+    .check-wrap span { font-size: .82rem; color: var(--txt2); }
+
+    .btn-search {
+      padding: .52rem 1.4rem;
+      background: linear-gradient(135deg, var(--p1), var(--p3));
+      border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: .85rem; font-weight: 700;
+      cursor: pointer; transition: opacity .15s, transform .15s;
+      white-space: nowrap; font-family: inherit;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .btn-search:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-reset {
+      padding: .52rem 1rem;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--txt2); font-size: .82rem; font-weight: 600;
+      cursor: pointer; transition: background .15s, color .15s;
+      font-family: inherit;
+    }
+    .btn-reset:hover { background: var(--glass-hover); color: var(--txt); }
+
+    /* ── Table card ──────────────────────────────────────────── */
+    .table-card { padding: 0; overflow: hidden; }
+    .table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .table-header .title { font-size: .95rem; font-weight: 700; }
+    .table-header .badge-count {
+      font-size: .72rem; font-weight: 700; padding: .25rem .7rem;
+      background: rgba(167,139,250,.15); color: var(--p1);
+      border: 1px solid rgba(167,139,250,.25); border-radius: 20px;
+    }
+
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead tr { border-bottom: 1px solid var(--glass-border); }
+    .data-table thead th {
+      padding: .7rem 1rem;
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--txt3);
+      text-align: left; white-space: nowrap;
+    }
+    .data-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      transition: background .12s;
+    }
+    .data-table tbody tr:hover { background: rgba(167,139,250,.04); }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table td { padding: .7rem 1rem; font-size: .83rem; vertical-align: middle; }
+
+    .book-thumb {
+      width: 34px; height: 48px; object-fit: cover;
+      border-radius: 5px; display: block;
+      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+    .book-title-link {
+      color: var(--txt); text-decoration: none; font-weight: 500;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;
+      max-width: 340px;
+    }
+    .book-title-link:hover { color: var(--p1); }
+
+    .cat-tag {
+      font-size: .7rem; font-weight: 600; padding: .2rem .6rem;
+      border-radius: 6px;
+      background: rgba(129,140,248,.12); color: var(--p2);
+      border: 1px solid rgba(129,140,248,.2); white-space: nowrap;
+    }
+    .price-val { font-weight: 700; color: var(--p5); font-size: .9rem; }
+    .stars-full  { color: #fbbf24; font-size: .85rem; letter-spacing: -.05em; }
+    .stars-empty { color: var(--txt3); font-size: .85rem; letter-spacing: -.05em; }
+
+    .badge-in  {
+      font-size: .7rem; font-weight: 700; padding: .2rem .65rem;
+      border-radius: 20px;
+      background: rgba(52,211,153,.12); color: var(--p4);
+      border: 1px solid rgba(52,211,153,.25);
+    }
+    .badge-out {
+      font-size: .7rem; font-weight: 700; padding: .2rem .65rem;
+      border-radius: 20px;
+      background: rgba(248,113,113,.12); color: var(--p6);
+      border: 1px solid rgba(248,113,113,.25);
+    }
+
+    /* ── Pagination ──────────────────────────────────────────── */
+    .pag-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .9rem 1.5rem; border-top: 1px solid var(--glass-border);
+      font-size: .78rem; color: var(--txt3);
+    }
+    .pag-btns { display: flex; gap: .4rem; }
+    .pag-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 600; cursor: pointer;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--txt2); transition: all .15s; font-family: inherit;
+    }
+    .pag-btn:hover:not(:disabled) { border-color: var(--p1); color: var(--p1); background: rgba(167,139,250,.08); }
+    .pag-btn.active { background: var(--p1); border-color: var(--p1); color: #fff; }
+    .pag-btn:disabled { opacity: .3; cursor: default; }
+
+    /* ── Loading skeleton ────────────────────────────────────── */
+    @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    /* ── Fade-in animation on load ───────────────────────────── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp .5s ease-out both; }
+    .fade-up:nth-child(1){ animation-delay:.05s }
+    .fade-up:nth-child(2){ animation-delay:.10s }
+    .fade-up:nth-child(3){ animation-delay:.15s }
+    .fade-up:nth-child(4){ animation-delay:.20s }
+
+    /* ── Scrollbar ───────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container-fluid px-4">
-      <span class="navbar-brand"><i class="bi bi-book me-2 gradient-text"></i><span class="gradient-text">Books Dashboard</span></span>
-      <span class="text-muted small">books.toscrape.com · 1000 livros · 50 categorias</span>
-    </div>
-  </nav>
 
-  <div class="container-fluid px-4 py-4">
-    <!-- KPI Cards -->
-    <p class="section-title">Visão Geral</p>
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6"><i class="bi bi-book-half"></i></div>
-          <div class="kpi-value" id="kpi-total">—</div>
-          <div class="kpi-label">Total de Livros</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:rgba(16,185,129,0.15);color:#10b981"><i class="bi bi-tags"></i></div>
-          <div class="kpi-value" id="kpi-cats">—</div>
-          <div class="kpi-label">Categorias</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b"><i class="bi bi-currency-pound"></i></div>
-          <div class="kpi-value" id="kpi-price">—</div>
-          <div class="kpi-label">Preço Médio</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6"><i class="bi bi-check-circle"></i></div>
-          <div class="kpi-value" id="kpi-disponivel">—</div>
-          <div class="kpi-label">Disponíveis</div>
-        </div>
-      </div>
-    </div>
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
 
-    <!-- Charts Grid 2x2 -->
-    <p class="section-title">Analytics</p>
-    <div class="row g-3 mb-4">
-      <div class="col-12 col-lg-6">
-        <div class="chart-card">
-          <div class="chart-title">Livros por Categoria</div>
-          <div class="chart-subtitle">Top 15 categorias por volume</div>
-          <canvas id="chart-categorias" height="280"></canvas>
-        </div>
+<div class="layout">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div><i class="bi bi-book-half"></i></div>
+      Books
+    </div>
+    <div class="topbar-meta">
+      <span id="topbar-time" ></span>
+    </div>
+  </header>
+
+  <!-- Page content -->
+  <main class="page">
+
+    <!-- ── KPI ──────────────────────────────────────────────── -->
+    <div class="section-label"><i class="bi bi-grid-1x2-fill"></i> Visão Geral</div>
+    <div class="kpi-grid">
+      <div class="glass kpi-card kpi-c1 fade-up">
+        <div class="kpi-icon"><i class="bi bi-book-half"></i></div>
+        <div class="kpi-val" id="kpi-total">—</div>
+        <div class="kpi-lbl">Total de Livros</div>
+        <div class="kpi-sub">registros no acervo</div>
       </div>
-      <div class="col-12 col-lg-6">
-        <div class="chart-card">
-          <div class="chart-title">Distribuição de Preços</div>
-          <div class="chart-subtitle">Quantidade de livros por faixa de preço (£)</div>
-          <canvas id="chart-precos" height="280"></canvas>
-        </div>
+      <div class="glass kpi-card kpi-c2 fade-up">
+        <div class="kpi-icon"><i class="bi bi-collection"></i></div>
+        <div class="kpi-val" id="kpi-cats">—</div>
+        <div class="kpi-lbl">Categorias</div>
+        <div class="kpi-sub">gêneros distintos</div>
       </div>
-      <div class="col-12 col-lg-6">
-        <div class="chart-card">
-          <div class="chart-title">Distribuição de Avaliações</div>
-          <div class="chart-subtitle">Número de livros por nota (★)</div>
-          <canvas id="chart-ratings" height="280"></canvas>
-        </div>
+      <div class="glass kpi-card kpi-c3 fade-up">
+        <div class="kpi-icon"><i class="bi bi-currency-pound"></i></div>
+        <div class="kpi-val" id="kpi-price">—</div>
+        <div class="kpi-lbl">Preço Médio</div>
+        <div class="kpi-sub">por livro</div>
       </div>
-      <div class="col-12 col-lg-6">
-        <div class="chart-card">
-          <div class="chart-title">Top 10 Livros Mais Caros</div>
-          <div class="chart-subtitle">Ranking por preço (£)</div>
-          <canvas id="chart-top-caros" height="280"></canvas>
-        </div>
+      <div class="glass kpi-card kpi-c4 fade-up">
+        <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
+        <div class="kpi-val" id="kpi-disponivel">—</div>
+        <div class="kpi-lbl">Disponíveis</div>
+        <div class="kpi-sub" id="kpi-disponivel-pct"></div>
       </div>
     </div>
 
-    <!-- Filters -->
-    <p class="section-title">Explorar Acervo</p>
-    <div class="filter-card mb-3">
-      <div class="row g-2 align-items-end">
-        <div class="col-12 col-md-3">
-          <label class="form-label small text-muted">Buscar título</label>
-          <input type="text" class="form-control" id="f-busca" placeholder="Ex: great expectations">
+    <!-- ── Charts ─────────────────────────────────────────────── -->
+    <div class="section-label"><i class="bi bi-bar-chart-line-fill"></i> Analytics</div>
+    <div class="chart-grid">
+
+      <div class="glass chart-card">
+        <div class="chart-head">
+          <div class="title">Livros por Categoria</div>
+          <div class="sub">Top 15 categorias · volume total</div>
         </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label small text-muted">Categoria</label>
-          <select class="form-select" id="f-categoria">
-            <option value="">Todas</option>
+        <div class="chart-wrap"><canvas id="chart-categorias"></canvas></div>
+      </div>
+
+      <div class="glass chart-card">
+        <div class="chart-head">
+          <div class="title">Distribuição de Preços</div>
+          <div class="sub">Faixas de preço em libras esterlinas (£)</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-precos"></canvas></div>
+      </div>
+
+      <div class="glass chart-card">
+        <div class="chart-head">
+          <div class="title">Avaliações dos Leitores</div>
+          <div class="sub">Quantidade de livros por nota ★</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ratings"></canvas></div>
+      </div>
+
+      <div class="glass chart-card">
+        <div class="chart-head">
+          <div class="title">Top 10 Mais Caros</div>
+          <div class="sub">Ranking de preço mais alto · valor em £</div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-top-caros"></canvas></div>
+      </div>
+
+    </div>
+
+    <!-- ── Filters ─────────────────────────────────────────────── -->
+    <div class="section-label"><i class="bi bi-funnel-fill"></i> Explorar Acervo</div>
+    <div class="glass filter-card">
+      <div class="filter-row">
+        <div>
+          <label class="filter-label">Buscar título</label>
+          <input class="f-control" type="text" id="f-busca" placeholder="Ex: great expectations…" />
+        </div>
+        <div>
+          <label class="filter-label">Categoria</label>
+          <select class="f-control" id="f-categoria">
+            <option value="">Todas as categorias</option>
           </select>
         </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label small text-muted">Rating mínimo</label>
-          <select class="form-select" id="f-rating">
+        <div>
+          <label class="filter-label">Rating mínimo</label>
+          <select class="f-control" id="f-rating">
             <option value="">Qualquer</option>
             <option value="1">★ 1+</option>
             <option value="2">★★ 2+</option>
@@ -178,314 +488,447 @@
             <option value="5">★★★★★ 5</option>
           </select>
         </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label small text-muted">Preço máx (£)</label>
-          <input type="number" class="form-control" id="f-preco" placeholder="Ex: 30">
+        <div>
+          <label class="filter-label">Preço máx (£)</label>
+          <input class="f-control" type="number" id="f-preco" placeholder="Ex: 30" min="0" />
         </div>
-        <div class="col-6 col-md-2">
-          <div class="form-check mt-4">
-            <input class="form-check-input" type="checkbox" id="f-disponivel">
-            <label class="form-check-label small" for="f-disponivel">Somente disponíveis</label>
+        <div>
+          <label class="filter-label" style="opacity:0">.</label>
+          <label class="check-wrap">
+            <input type="checkbox" id="f-disponivel" />
+            <span>Só disponíveis</span>
+          </label>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-direction:column">
+          <label class="filter-label" style="opacity:0">.</label>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn-search" id="btn-buscar"><i class="bi bi-search"></i> Buscar</button>
+            <button class="btn-reset"  id="btn-reset">Limpar</button>
           </div>
-        </div>
-        <div class="col-12 col-md-1">
-          <button class="btn btn-primary w-100" id="btn-buscar"><i class="bi bi-search me-1"></i>Buscar</button>
         </div>
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="chart-card">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <span class="chart-title">Acervo</span>
-          <span class="text-muted small ms-2" id="table-info"></span>
-        </div>
+    <!-- ── Table ────────────────────────────────────────────────── -->
+    <div class="glass table-card">
+      <div class="table-header">
+        <span class="title">Acervo de Livros</span>
+        <span class="badge-count" id="table-count">—</span>
       </div>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle" id="livros-table">
+      <div style="overflow-x:auto">
+        <table class="data-table">
           <thead>
             <tr>
-              <th style="width:50px">Capa</th>
+              <th>Capa</th>
               <th>Título</th>
               <th>Categoria</th>
               <th>Preço</th>
               <th>Avaliação</th>
-              <th>Disponível</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="table-body">
-            <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Carregando...</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--txt3)">
+              <i class="bi bi-hourglass-split" style="font-size:1.5rem;display:block;margin-bottom:.5rem"></i>
+              Carregando acervo…
+            </td></tr>
           </tbody>
         </table>
       </div>
-      <nav aria-label="Paginação">
-        <ul class="pagination justify-content-center mb-0" id="pagination"></ul>
-      </nav>
+      <div class="pag-bar">
+        <span id="pag-info">—</span>
+        <div class="pag-btns" id="pag-btns"></div>
+      </div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const API_BASE = 'http://localhost:8000';
-    let currentPage = 1;
-    const PAGE_SIZE = 20;
+  </main>
+</div>
 
-    // Chart instances
-    let charts = {};
+<script>
+'use strict';
 
-    // Gradient helper
-    function makeGradient(ctx, color1, color2) {
-      const g = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
-      g.addColorStop(0, color1);
-      g.addColorStop(1, color2);
-      return g;
-    }
+const API_BASE  = 'http://localhost:8000';
+const PAGE_SIZE = 20;
+let   curPage   = 1;
+let   totalItems = 0;
+const charts    = {};
 
-    async function apiFetch(path) {
-      const r = await fetch(API_BASE + path);
-      if (!r.ok) throw new Error(await r.text());
-      return r.json();
-    }
+// ── Clock ──────────────────────────────────────────────────────────────────
+function tickClock() {
+  document.getElementById('topbar-time').textContent =
+    new Date().toLocaleTimeString('pt-BR');
+}
+tickClock();
+setInterval(tickClock, 1000);
 
-    // Load KPIs
-    async function loadStats() {
-      try {
-        const s = await apiFetch('/livros/stats');
-        document.getElementById('kpi-total').textContent = s.total.toLocaleString('pt-BR');
-        document.getElementById('kpi-cats').textContent = s.total_categorias;
-        document.getElementById('kpi-price').textContent = '£' + s.media_preco.toFixed(2);
-        document.getElementById('kpi-disponivel').textContent = s.total_disponivel.toLocaleString('pt-BR');
-      } catch(e) { console.error('stats error', e); }
-    }
+// ── API fetch ──────────────────────────────────────────────────────────────
+async function api(path) {
+  const r = await fetch(API_BASE + path);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
 
-    // Load categories for filter
-    async function loadCategorias() {
-      try {
-        const cats = await apiFetch('/livros/categorias');
-        const sel = document.getElementById('f-categoria');
-        cats.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c; opt.textContent = c;
-          sel.appendChild(opt);
-        });
-      } catch(e) { console.error('categorias error', e); }
-    }
+// ── Animated counter ───────────────────────────────────────────────────────
+function animateCount(el, target, prefix = '', suffix = '', decimals = 0) {
+  const dur  = 900;
+  const fps  = 60;
+  const step = target / (dur / (1000 / fps));
+  let   cur  = 0;
+  const tick = () => {
+    cur = Math.min(cur + step, target);
+    el.textContent = prefix + (decimals ? cur.toFixed(decimals) : Math.floor(cur).toLocaleString('pt-BR')) + suffix;
+    if (cur < target) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 
-    // Chart: Livros por Categoria
-    async function loadChartCategorias() {
-      try {
-        const data = await apiFetch('/livros/charts/por-categoria');
-        const top15 = data.slice(0, 15);
-        const ctx = document.getElementById('chart-categorias').getContext('2d');
-        if (charts.categorias) charts.categorias.destroy();
-        charts.categorias = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: top15.map(d => d.categoria),
-            datasets: [{
-              label: 'Livros',
-              data: top15.map(d => d.total),
-              backgroundColor: top15.map((_, i) => `hsla(${260 + i * 6}, 70%, 60%, 0.8)`),
-              borderColor: top15.map((_, i) => `hsla(${260 + i * 6}, 70%, 60%, 1)`),
-              borderWidth: 1,
-              borderRadius: 4,
-            }]
-          },
-          options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-              y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
-            }
-          }
-        });
-      } catch(e) { console.error('chart categorias error', e); }
-    }
+// ── Helpers ────────────────────────────────────────────────────────────────
+function stars(r) {
+  return `<span class="stars-full">${'★'.repeat(r)}</span><span class="stars-empty">${'★'.repeat(5-r)}</span>`;
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function shortTitle(t, n = 38) {
+  return t && t.length > n ? t.slice(0, n) + '…' : (t || '—');
+}
 
-    // Chart: Distribuição de Preços
-    async function loadChartPrecos() {
-      try {
-        const data = await apiFetch('/livros/charts/distribuicao-preco');
-        const ctx = document.getElementById('chart-precos').getContext('2d');
-        const colors = ['#3b82f6','#6366f1','#8b5cf6','#a855f7','#c084fc','#d8b4fe'];
-        if (charts.precos) charts.precos.destroy();
-        charts.precos = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: data.map(d => d.faixa),
-            datasets: [{
-              label: 'Livros',
-              data: data.map(d => d.total),
-              backgroundColor: colors,
-              borderColor: colors,
-              borderWidth: 1,
-              borderRadius: 6,
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
-            }
-          }
-        });
-      } catch(e) { console.error('chart precos error', e); }
-    }
+// ── Chart defaults ─────────────────────────────────────────────────────────
+Chart.defaults.color          = '#64748b';
+Chart.defaults.font.family    = 'Inter';
+Chart.defaults.font.size      = 11;
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,15,26,.95)';
+Chart.defaults.plugins.tooltip.borderColor     = 'rgba(167,139,250,.3)';
+Chart.defaults.plugins.tooltip.borderWidth     = 1;
+Chart.defaults.plugins.tooltip.padding         = 10;
+Chart.defaults.plugins.tooltip.titleColor      = '#e2e8f0';
+Chart.defaults.plugins.tooltip.bodyColor       = '#94a3b8';
+Chart.defaults.plugins.tooltip.cornerRadius    = 10;
 
-    // Chart: Distribuição de Ratings
-    async function loadChartRatings() {
-      try {
-        const data = await apiFetch('/livros/charts/por-rating');
-        const colorMap = { 1: '#ef4444', 2: '#f97316', 3: '#eab308', 4: '#84cc16', 5: '#10b981' };
-        const labels = [1,2,3,4,5];
-        const totals = labels.map(r => { const found = data.find(d => d.rating === r); return found ? found.total : 0; });
-        const ctx = document.getElementById('chart-ratings').getContext('2d');
-        if (charts.ratings) charts.ratings.destroy();
-        charts.ratings = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels.map(r => '★'.repeat(r) + ' (' + r + ')'),
-            datasets: [{
-              label: 'Livros',
-              data: totals,
-              backgroundColor: labels.map(r => colorMap[r] + 'cc'),
-              borderColor: labels.map(r => colorMap[r]),
-              borderWidth: 2,
-              borderRadius: 6,
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
-            }
-          }
-        });
-      } catch(e) { console.error('chart ratings error', e); }
-    }
+const GRID_COLOR = 'rgba(255,255,255,0.05)';
 
-    // Chart: Top 10 Mais Caros
-    async function loadChartTopCaros() {
-      try {
-        const data = await apiFetch('/livros/charts/top-caros');
-        const ctx = document.getElementById('chart-top-caros').getContext('2d');
-        if (charts.topCaros) charts.topCaros.destroy();
-        charts.topCaros = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: data.map(d => d.title.length > 28 ? d.title.slice(0,28) + '…' : d.title),
-            datasets: [{
-              label: 'Preço (£)',
-              data: data.map(d => d.price),
-              backgroundColor: data.map((_, i) => `hsla(${280 - i * 8}, 70%, 55%, 0.8)`),
-              borderColor: data.map((_, i) => `hsla(${280 - i * 8}, 70%, 55%, 1)`),
-              borderWidth: 1,
-              borderRadius: 4,
-            }]
-          },
-          options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '£' + v } },
-              y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
-            }
-          }
-        });
-      } catch(e) { console.error('chart top caros error', e); }
-    }
+// ── KPI ────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const s = await api('/livros/stats');
+    animateCount(document.getElementById('kpi-total'),      s.total);
+    animateCount(document.getElementById('kpi-cats'),       s.total_categorias);
+    animateCount(document.getElementById('kpi-price'),      s.media_preco, '£', '', 2);
+    animateCount(document.getElementById('kpi-disponivel'), s.total_disponivel);
+    const pct = s.total ? ((s.total_disponivel / s.total) * 100).toFixed(1) : 0;
+    document.getElementById('kpi-disponivel-pct').textContent = `${pct}% do acervo`;
+  } catch(e) { console.error(e); }
+}
 
-    // Stars helper
-    function renderStars(rating) {
-      return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    }
+// ── Filters ────────────────────────────────────────────────────────────────
+async function loadCategorias() {
+  try {
+    const cats = await api('/livros/categorias');
+    const sel  = document.getElementById('f-categoria');
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+  } catch(e) { console.error(e); }
+}
 
-    // Load table
-    async function loadTable(page = 1) {
-      currentPage = page;
-      const busca = document.getElementById('f-busca').value.trim();
-      const categoria = document.getElementById('f-categoria').value;
-      const rating = document.getElementById('f-rating').value;
-      const preco = document.getElementById('f-preco').value;
-      const disponivel = document.getElementById('f-disponivel').checked;
+// ── Chart: Categorias ──────────────────────────────────────────────────────
+async function loadChartCategorias() {
+  try {
+    const raw  = await api('/livros/charts/por-categoria');
+    const data = raw.slice(0, 15);
+    const ctx  = document.getElementById('chart-categorias').getContext('2d');
+    if (charts.cat) charts.cat.destroy();
 
-      let qs = `?page=${page}&size=${PAGE_SIZE}`;
-      if (busca) qs += `&busca=${encodeURIComponent(busca)}`;
-      if (categoria) qs += `&categoria=${encodeURIComponent(categoria)}`;
-      if (rating) qs += `&rating_min=${rating}`;
-      if (preco) qs += `&preco_max=${preco}`;
-      if (disponivel) qs += `&disponivel=true`;
+    // Horizontal gradient per bar
+    const gradient = ctx.createLinearGradient(400, 0, 0, 0);
+    gradient.addColorStop(0, '#a78bfa');
+    gradient.addColorStop(1, '#60a5fa');
 
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-hourglass-split me-2"></i>Carregando...</td></tr>';
-
-      try {
-        const data = await apiFetch('/livros' + qs);
-        document.getElementById('table-info').textContent = `${data.total.toLocaleString('pt-BR')} livros encontrados`;
-
-        if (data.items.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-search me-2"></i>Nenhum livro encontrado</td></tr>';
-          document.getElementById('pagination').innerHTML = '';
-          return;
+    charts.cat = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.categoria),
+        datasets: [{
+          label: 'Livros',
+          data: data.map(d => d.total),
+          backgroundColor: gradient,
+          borderColor: 'transparent',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${c.parsed.x} livros` } }
+        },
+        scales: {
+          x: { grid: { color: GRID_COLOR }, ticks: { precision: 0 } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
         }
-
-        tbody.innerHTML = data.items.map(b => `
-          <tr>
-            <td><img src="${b.image_url || ''}" class="book-thumb" onerror="this.style.display='none'" alt="capa"></td>
-            <td><a href="${b.url || '#'}" target="_blank" class="text-decoration-none text-light fw-500">${b.title}</a></td>
-            <td><span class="text-muted">${b.category || ''}</span></td>
-            <td class="fw-600" style="color:#f59e0b">£${(b.price || 0).toFixed(2)}</td>
-            <td class="stars">${renderStars(b.rating || 0)}</td>
-            <td>${b.availability ? '<span class="badge-disponivel">Em stock</span>' : '<span class="badge-indisponivel">Esgotado</span>'}</td>
-          </tr>
-        `).join('');
-
-        renderPagination(data.total, page);
-      } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>${e.message}</td></tr>`;
       }
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Chart: Preços ──────────────────────────────────────────────────────────
+async function loadChartPrecos() {
+  try {
+    const data = await api('/livros/charts/distribuicao-preco');
+    const ctx  = document.getElementById('chart-precos').getContext('2d');
+    if (charts.preco) charts.preco.destroy();
+
+    const bgColors = ['#60a5fa','#818cf8','#a78bfa','#c084fc','#e879f9','#f472b6'];
+
+    charts.preco = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.faixa),
+        datasets: [{
+          label: 'Livros',
+          data: data.map(d => d.total),
+          backgroundColor: bgColors,
+          borderColor: 'transparent',
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${c.parsed.y} livros` } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: GRID_COLOR }, ticks: { precision: 0 } }
+        }
+      }
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Chart: Ratings ─────────────────────────────────────────────────────────
+async function loadChartRatings() {
+  try {
+    const raw    = await api('/livros/charts/por-rating');
+    const ctx    = document.getElementById('chart-ratings').getContext('2d');
+    if (charts.rat) charts.rat.destroy();
+
+    const ratingColors = {
+      1: ['rgba(239,68,68,.75)','#ef4444'],
+      2: ['rgba(249,115,22,.75)','#f97316'],
+      3: ['rgba(234,179,8,.75)', '#eab308'],
+      4: ['rgba(132,204,22,.75)','#84cc16'],
+      5: ['rgba(52,211,153,.75)','#34d399'],
+    };
+    const labels = [1,2,3,4,5];
+    const totals = labels.map(r => (raw.find(d => d.rating===r)||{total:0}).total);
+
+    charts.rat = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels.map(r => '★'.repeat(r)),
+        datasets: [{
+          label: 'Livros',
+          data: totals,
+          backgroundColor: labels.map(r => ratingColors[r][0]),
+          borderColor:     labels.map(r => ratingColors[r][1]),
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => `${items[0].label} (${items[0].label.length} estrela${items[0].label.length>1?'s':''})`,
+              label: c => ` ${c.parsed.y} livros`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 16 } } },
+          y: { grid: { color: GRID_COLOR }, ticks: { precision: 0 } }
+        }
+      }
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Chart: Top caros ───────────────────────────────────────────────────────
+async function loadChartTopCaros() {
+  try {
+    const data = await api('/livros/charts/top-caros');
+    const ctx  = document.getElementById('chart-top-caros').getContext('2d');
+    if (charts.top) charts.top.destroy();
+
+    const gradient = ctx.createLinearGradient(400, 0, 0, 0);
+    gradient.addColorStop(0, '#fbbf24');
+    gradient.addColorStop(1, '#f87171');
+
+    charts.top = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => shortTitle(d.title, 26)),
+        datasets: [{
+          label: 'Preço (£)',
+          data: data.map(d => d.price),
+          backgroundColor: gradient,
+          borderColor: 'transparent',
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => data[items[0].dataIndex].title,
+              label: c => ` £${c.parsed.x.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: GRID_COLOR }, ticks: { callback: v => '£'+v } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────
+async function loadTable(page = 1) {
+  curPage = page;
+  const busca      = document.getElementById('f-busca').value.trim();
+  const categoria  = document.getElementById('f-categoria').value;
+  const rating     = document.getElementById('f-rating').value;
+  const preco      = document.getElementById('f-preco').value;
+  const disponivel = document.getElementById('f-disponivel').checked;
+
+  const qs = new URLSearchParams({ page, size: PAGE_SIZE });
+  if (busca)      qs.set('busca', busca);
+  if (categoria)  qs.set('categoria', categoria);
+  if (rating)     qs.set('rating_min', rating);
+  if (preco)      qs.set('preco_max', preco);
+  if (disponivel) qs.set('disponivel', 'true');
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--txt3)">
+    <i class="bi bi-hourglass-split" style="font-size:1.3rem;display:block;margin-bottom:.5rem;animation:spin 1s linear infinite"></i>
+    Carregando…
+  </td></tr>`;
+
+  try {
+    const d = await api('/livros?' + qs.toString());
+    totalItems = d.total || 0;
+    const items = d.items || [];
+    const pages = Math.ceil(totalItems / PAGE_SIZE);
+
+    document.getElementById('table-count').textContent =
+      totalItems.toLocaleString('pt-BR') + ' livros';
+
+    if (!items.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--txt3)">
+        <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+        Nenhum livro encontrado
+      </td></tr>`;
+    } else {
+      tbody.innerHTML = items.map(b => `
+        <tr>
+          <td>
+            <img src="${esc(b.image_url||'')}" class="book-thumb"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2234%22 height=%2248%22><rect fill=%22%23232340%22 width=%2234%22 height=%2248%22 rx=%225%22/></svg>'"
+                 alt="capa" />
+          </td>
+          <td>
+            <a href="${esc(b.url||'#')}" target="_blank" rel="noopener" class="book-title-link">${esc(b.title||'—')}</a>
+          </td>
+          <td><span class="cat-tag">${esc(b.category||'—')}</span></td>
+          <td class="price-val">£${(b.price||0).toFixed(2)}</td>
+          <td>${stars(b.rating||0)}</td>
+          <td>${b.availability
+            ? '<span class="badge-in"><i class="bi bi-check-circle-fill" style="margin-right:.3rem"></i>Em stock</span>'
+            : '<span class="badge-out"><i class="bi bi-x-circle-fill" style="margin-right:.3rem"></i>Esgotado</span>'
+          }</td>
+        </tr>`).join('');
     }
 
-    function renderPagination(total, page) {
-      const pages = Math.ceil(total / PAGE_SIZE);
-      const ul = document.getElementById('pagination');
-      if (pages <= 1) { ul.innerHTML = ''; return; }
-      let html = '';
-      const maxLinks = 5;
-      let start = Math.max(1, page - 2);
-      let end = Math.min(pages, start + maxLinks - 1);
-      if (end - start < maxLinks - 1) start = Math.max(1, end - maxLinks + 1);
-      html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadTable(${page - 1});return false;"><i class="bi bi-chevron-left"></i></a></li>`;
-      for (let p = start; p <= end; p++) {
-        html += `<li class="page-item ${p === page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadTable(${p});return false;">${p}</a></li>`;
-      }
-      html += `<li class="page-item ${page === pages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadTable(${page + 1});return false;"><i class="bi bi-chevron-right"></i></a></li>`;
-      ul.innerHTML = html;
-    }
+    renderPagination(pages);
+    document.getElementById('pag-info').textContent =
+      `Página ${curPage} de ${pages} · ${totalItems.toLocaleString('pt-BR')} registros`;
 
-    document.getElementById('btn-buscar').addEventListener('click', () => loadTable(1));
-    document.getElementById('f-busca').addEventListener('keydown', e => { if (e.key === 'Enter') loadTable(1); });
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--p6)">
+      <i class="bi bi-exclamation-triangle"></i> ${e.message}
+    </td></tr>`;
+  }
+}
 
-    // Init
-    (async () => {
-      await Promise.all([
-        loadStats(),
-        loadCategorias(),
-        loadChartCategorias(),
-        loadChartPrecos(),
-        loadChartRatings(),
-        loadChartTopCaros(),
-        loadTable(1)
-      ]);
-    })();
-  </script>
+function renderPagination(pages) {
+  const container = document.getElementById('pag-btns');
+  if (pages <= 1) { container.innerHTML = ''; return; }
+
+  const MAX = 7;
+  let start = Math.max(1, curPage - Math.floor(MAX/2));
+  let end   = Math.min(pages, start + MAX - 1);
+  if (end - start < MAX - 1) start = Math.max(1, end - MAX + 1);
+
+  let html = '';
+  html += `<button class="pag-btn" ${curPage===1?'disabled':''} onclick="loadTable(${curPage-1})">
+    <i class="bi bi-chevron-left"></i></button>`;
+  if (start > 1) html += `<button class="pag-btn" onclick="loadTable(1)">1</button>
+    ${start > 2 ? '<span style="color:var(--txt3);padding:0 .25rem">…</span>' : ''}`;
+  for (let p = start; p <= end; p++) {
+    html += `<button class="pag-btn${p===curPage?' active':''}" onclick="loadTable(${p})">${p}</button>`;
+  }
+  if (end < pages) html += `${end < pages-1 ? '<span style="color:var(--txt3);padding:0 .25rem">…</span>' : ''}
+    <button class="pag-btn" onclick="loadTable(${pages})">${pages}</button>`;
+  html += `<button class="pag-btn" ${curPage===pages?'disabled':''} onclick="loadTable(${curPage+1})">
+    <i class="bi bi-chevron-right"></i></button>`;
+
+  container.innerHTML = html;
+}
+
+// ── Events ─────────────────────────────────────────────────────────────────
+document.getElementById('btn-buscar').addEventListener('click', () => loadTable(1));
+document.getElementById('f-busca').addEventListener('keydown', e => { if(e.key==='Enter') loadTable(1); });
+document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('f-busca').value     = '';
+  document.getElementById('f-categoria').value = '';
+  document.getElementById('f-rating').value    = '';
+  document.getElementById('f-preco').value     = '';
+  document.getElementById('f-disponivel').checked = false;
+  loadTable(1);
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async () => {
+  await Promise.all([
+    loadStats(),
+    loadCategorias(),
+    loadChartCategorias(),
+    loadChartPrecos(),
+    loadChartRatings(),
+    loadChartTopCaros(),
+    loadTable(1),
+  ]);
+})();
+</script>
 </body>
 </html>
