@@ -1,16 +1,16 @@
-# TechTudo Jogos — Plataforma de Coleta e Análise de Dados
+# Books Dashboard — Plataforma de Coleta e Análise de Livros
 
 ## Descrição
 
-Plataforma de coleta e análise de notícias de jogos do site [techtudo.com.br](https://www.techtudo.com.br/jogos/).
+Plataforma de coleta e análise de livros do site [books.toscrape.com](http://books.toscrape.com).
 
 O sistema realiza o fluxo completo:
 
 ```
-Site (techtudo.com.br) → Web Crawler (Scrapy) → MongoDB → FastAPI → Dashboard
+Site (books.toscrape.com) → Web Crawler (Scrapy) → MongoDB → FastAPI → Dashboard
 ```
 
-Os dados são coletados automaticamente, armazenados em MongoDB, disponibilizados via API REST e visualizados em um dashboard web interativo.
+Os dados são coletados automaticamente (1000 livros, 50 categorias), armazenados em MongoDB, disponibilizados via API REST e visualizados em um dashboard web interativo com gráficos premium.
 
 ---
 
@@ -21,18 +21,19 @@ cp5-python/
 ├── webcrawler/              # Projeto Scrapy
 │   ├── scrapy.cfg
 │   └── games/
-│       ├── items.py         # Definição dos campos coletados
-│       ├── pipelines.py     # Pipeline MongoDB (upsert por link)
+│       ├── items.py         # BookItem — campos coletados
+│       ├── pipelines.py     # Pipeline MongoDB (upsert por upc)
 │       ├── settings.py      # Configurações do Scrapy
 │       └── spiders/
-│           └── Tecnoblog.py # Spider principal
+│           └── Tecnoblog.py # BooksSpider (books.toscrape.com)
 ├── api/                     # API FastAPI
 │   ├── database.py          # Conexão MongoDB
-│   ├── models.py            # Modelos Pydantic v2
+│   ├── models.py            # Modelos Pydantic (BookOut, StatsOut)
 │   ├── main.py              # Endpoints FastAPI
 │   └── requirements.txt     # Dependências da API
 ├── dashboard/
-│   └── index.html           # Dashboard HTML/CSS/JS (single-file)
+│   └── index.html           # Dashboard dark premium (Bootstrap 5 + Chart.js 4)
+├── .env                     # MONGO_URI=mongodb://localhost:27019
 ├── requirements.txt         # Dependências do crawler
 └── README.md
 ```
@@ -41,22 +42,25 @@ cp5-python/
 
 ## Estrutura MongoDB
 
-**Database:** `techtudo`  
-**Collection:** `noticias`
+**Database:** `books_db`
+**Collection:** `livros`
 
-| Campo            | Tipo     | Descrição                                      |
-| ---------------- | -------- | ---------------------------------------------- |
-| `_id`            | ObjectId | Identificador gerado pelo MongoDB              |
-| `title`          | string   | Título da notícia                              |
-| `author`         | string   | Nome do autor                                  |
-| `text`           | string   | Texto/resumo do conteúdo                       |
-| `link`           | string   | URL canônica do artigo (chave de deduplicação) |
-| `published_date` | string   | Data/hora de publicação (ISO 8601)             |
-| `category`       | string   | Categoria extraída da URL (ex: `jogos`)        |
-| `source_url`     | string   | URL da página de origem usada pelo crawler     |
-| `collected_at`   | string   | Data/hora da coleta (UTC, ISO 8601)            |
+| Campo          | Tipo     | Descrição                                     |
+| -------------- | -------- | --------------------------------------------- |
+| `_id`          | ObjectId | Identificador gerado pelo MongoDB             |
+| `title`        | string   | Título do livro                               |
+| `price`        | float    | Preço em libras (£)                           |
+| `rating`       | int      | Avaliação de 1 a 5 estrelas                   |
+| `availability` | bool     | `true` se em estoque, `false` se esgotado     |
+| `category`     | string   | Categoria (ex: Mystery, Fiction, Travel…)     |
+| `description`  | string   | Sinopse do livro                              |
+| `upc`          | string   | Código único do livro (chave de deduplicação) |
+| `num_reviews`  | int      | Número de avaliações                          |
+| `image_url`    | string   | URL da capa do livro                          |
+| `url`          | string   | URL da página do livro no site                |
+| `collected_at` | datetime | Data/hora da coleta (UTC)                     |
 
-Índice único em `link` — evita registros duplicados em novas coletas.
+Índice único em `upc` — evita registros duplicados em novas coletas.
 
 ---
 
@@ -65,16 +69,11 @@ cp5-python/
 ### Pré-requisitos
 
 - Python 3.10+
-- MongoDB rodando em `localhost:27017`
+- MongoDB rodando em `localhost:27019`
 
 ### Instalar dependências
 
 ```bash
-# Criar e ativar ambiente virtual (recomendado)
-python3 -m venv .venv
-source .venv/bin/activate   # Linux/macOS
-# .venv\Scripts\activate    # Windows
-
 # Dependências do crawler
 pip install -r requirements.txt
 
@@ -88,10 +87,10 @@ pip install -r api/requirements.txt
 
 ```bash
 cd webcrawler
-scrapy crawl TechTudoJogos
+../.venv/bin/scrapy crawl books
 ```
 
-Os dados são automaticamente armazenados na collection `noticias` do MongoDB. Novas execuções fazem upsert (não duplicam registros já coletados).
+O spider percorre todas as 50 páginas de listagem (1000 livros) e faz upsert por `upc` no MongoDB.
 
 ---
 
@@ -99,7 +98,7 @@ Os dados são automaticamente armazenados na collection `noticias` do MongoDB. N
 
 ```bash
 cd api
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload
 ```
 
 Acesse a documentação interativa em: <http://localhost:8000/docs>
@@ -127,47 +126,44 @@ Verificação de saúde da API.
 **Response:**
 
 ```json
-{ "status": "ok" }
+{ "status": "ok", "service": "books-api" }
 ```
 
 ---
 
-### `GET /noticias`
+### `GET /livros`
 
-Lista notícias com paginação e filtros opcionais.
+Lista livros com paginação e filtros opcionais.
 
 **Query params:**
 
-| Param       | Tipo   | Padrão | Descrição                             |
-| ----------- | ------ | ------ | ------------------------------------- |
-| `page`      | int    | 1      | Número da página                      |
-| `size`      | int    | 20     | Itens por página (máx. 100)           |
-| `busca`     | string | —      | Filtro por título (regex, insensível) |
-| `categoria` | string | —      | Filtro exato por categoria            |
-| `autor`     | string | —      | Filtro exato por autor                |
-
-**Request:**
-
-```
-GET /noticias?page=1&size=2&categoria=jogos
-```
+| Param        | Tipo   | Padrão | Descrição                                   |
+| ------------ | ------ | ------ | ------------------------------------------- |
+| `page`       | int    | 1      | Número da página                            |
+| `size`       | int    | 20     | Itens por página (máx. 500)                 |
+| `busca`      | string | —      | Filtro por título (regex, case-insensitive) |
+| `categoria`  | string | —      | Filtro exato por categoria                  |
+| `rating_min` | int    | —      | Rating mínimo (1–5)                         |
+| `preco_max`  | float  | —      | Preço máximo em £                           |
+| `disponivel` | bool   | —      | Se `true`, retorna apenas livros em estoque |
 
 **Response:**
 
 ```json
 {
-  "total": 142,
+  "total": 1000,
   "page": 1,
-  "size": 2,
+  "size": 20,
   "items": [
     {
-      "_id": "6748a1c3f2e1b4d5e6f70001",
-      "title": "Novo jogo de RPG chega ao PC em 2025",
-      "author": "João Silva",
-      "link": "https://www.techtudo.com.br/jogos/2024/10/novo-jogo-rpg.html",
-      "published_date": "2024-10-15T14:30:00+00:00",
-      "category": "jogos",
-      "collected_at": "2024-11-20T09:00:00+00:00"
+      "id": "...",
+      "title": "...",
+      "price": 12.99,
+      "rating": 4,
+      "availability": true,
+      "category": "Mystery",
+      "image_url": "...",
+      "url": "..."
     }
   ]
 }
@@ -175,95 +171,124 @@ GET /noticias?page=1&size=2&categoria=jogos
 
 ---
 
-### `GET /noticias/stats`
+### `GET /livros/stats`
 
 Retorna estatísticas gerais da collection.
-
-**Request:**
-
-```
-GET /noticias/stats
-```
 
 **Response:**
 
 ```json
 {
-  "total": 142,
-  "unique_authors": 18,
-  "unique_categories": 4,
-  "last_collected_at": "2024-11-20T09:00:00+00:00"
+  "total": 1000,
+  "total_categorias": 50,
+  "media_preco": 35.07,
+  "total_disponivel": 980,
+  "media_rating": 2.85
 }
 ```
 
 ---
 
-### `GET /noticias/categorias`
+### `GET /livros/categorias`
 
-Lista todos os valores distintos de categoria.
-
-**Request:**
-
-```
-GET /noticias/categorias
-```
+Lista todos os valores distintos de categoria em ordem alfabética.
 
 **Response:**
 
 ```json
-["jogos", "listas", "noticias", "reviews"]
+["Academic", "Add a comment", "Adventure", "Art", "Autobiography", "..."]
 ```
 
 ---
 
-### `GET /noticias/autores`
+### `GET /livros/charts/por-categoria`
 
-Lista todos os valores distintos de autor.
-
-**Request:**
-
-```
-GET /noticias/autores
-```
+Agrupamento de livros por categoria, ordenado por volume decrescente.
 
 **Response:**
 
 ```json
-["Ana Costa", "Carlos Mendes", "João Silva"]
+[{ "categoria": "Mystery", "total": 32, "media_preco": 27.45 }, ...]
 ```
 
 ---
 
-### `GET /noticias/{id}`
+### `GET /livros/charts/distribuicao-preco`
 
-Retorna uma notícia pelo seu `_id` MongoDB.
+Distribuição de livros por faixa de preço em £.
 
-**Request:**
+**Response:**
 
+```json
+[
+  { "faixa": "£0-10", "total": 120 },
+  { "faixa": "£10-20", "total": 230 },
+  { "faixa": "£20-30", "total": 310 },
+  { "faixa": "£30-40", "total": 180 },
+  { "faixa": "£40-50", "total": 100 },
+  { "faixa": "£50+", "total": 60 }
+]
 ```
-GET /noticias/6748a1c3f2e1b4d5e6f70001
+
+---
+
+### `GET /livros/charts/por-rating`
+
+Contagem de livros por nota de 1 a 5 estrelas.
+
+**Response:**
+
+```json
+[
+  { "rating": 1, "total": 180 },
+  { "rating": 2, "total": 200 },
+  { "rating": 3, "total": 210 },
+  { "rating": 4, "total": 190 },
+  { "rating": 5, "total": 220 }
+]
 ```
+
+---
+
+### `GET /livros/charts/top-caros`
+
+Top 10 livros mais caros.
+
+**Response:**
+
+```json
+[{ "title": "...", "price": 59.99, "category": "Art" }, ...]
+```
+
+---
+
+### `GET /livros/{id}`
+
+Retorna um livro pelo seu `_id` MongoDB.
 
 **Response (200):**
 
 ```json
 {
-  "_id": "6748a1c3f2e1b4d5e6f70001",
-  "title": "Novo jogo de RPG chega ao PC em 2025",
-  "author": "João Silva",
-  "text": "O esperado título de RPG foi confirmado para 2025...",
-  "link": "https://www.techtudo.com.br/jogos/2024/10/novo-jogo-rpg.html",
-  "published_date": "2024-10-15T14:30:00+00:00",
-  "category": "jogos",
-  "source_url": "https://busca.techtudo.com.br/api/...",
-  "collected_at": "2024-11-20T09:00:00+00:00"
+  "id": "6748a1c3f2e1b4d5e6f70001",
+  "title": "A Light in the Attic",
+  "price": 51.77,
+  "rating": 3,
+  "availability": true,
+  "category": "Poetry",
+  "description": "...",
+  "upc": "a897fe39b1053632",
+  "num_reviews": 0,
+  "image_url": "http://books.toscrape.com/media/cache/...",
+  "url": "http://books.toscrape.com/catalogue/...",
+  "collected_at": "2024-11-20T09:00:00"
 }
 ```
 
 **Response (404):**
 
 ```json
-{ "detail": "Notícia não encontrada" }
+{ "detail": "Livro não encontrado" }
 ```
 
 ---
@@ -271,27 +296,30 @@ GET /noticias/6748a1c3f2e1b4d5e6f70001
 ## Fluxo Completo
 
 ```
-Site (techtudo.com.br)
+Site (books.toscrape.com)
         │
         ▼
 Web Crawler (Scrapy)
-  └─ spider: TechTudoJogos
-  └─ pipeline: MongoPipeline (upsert por link)
+  └─ spider: BooksSpider (name="books")
+  └─ pipeline: MongoPipeline (upsert por upc)
         │
         ▼
-MongoDB (localhost:27017)
-  └─ database: techtudo
-  └─ collection: noticias
+MongoDB (localhost:27019)
+  └─ database: books_db
+  └─ collection: livros
         │
         ▼
 FastAPI (localhost:8000)
-  └─ GET /noticias
-  └─ GET /noticias/stats
-  └─ GET /noticias/categorias
-  └─ GET /noticias/autores
-  └─ GET /noticias/{id}
+  └─ GET /livros
+  └─ GET /livros/stats
+  └─ GET /livros/categorias
+  └─ GET /livros/charts/por-categoria
+  └─ GET /livros/charts/distribuicao-preco
+  └─ GET /livros/charts/por-rating
+  └─ GET /livros/charts/top-caros
+  └─ GET /livros/{id}
         │
         ▼
 Dashboard (localhost:3000)
-  └─ KPIs, gráficos, filtros e tabela paginada
+  └─ KPIs, 4 gráficos Chart.js 4, filtros e tabela paginada
 ```

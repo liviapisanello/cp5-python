@@ -1,4 +1,4 @@
-# Scrapy settings for webcrawler project
+# Scrapy settings for bookscrawler project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -7,7 +7,15 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = "webcrawler"
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Carrega o .env da raiz do projeto (dois níveis acima de webcrawler/games/)
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+BOT_NAME = "bookscrawler"
 
 SPIDER_MODULES = ["games.spiders"]
 NEWSPIDER_MODULE = "games.spiders"
@@ -16,29 +24,21 @@ ADDONS = {}
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "webcrawler (+http://www.yourdomain.com)"
-
 # Obey robots.txt rules
-# Set to False because techtudo blocks bots in robots.txt and this is for educational purposes
 ROBOTSTXT_OBEY = False
 
 # Concurrency and throttling settings
-#CONCURRENT_REQUESTS = 16
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 0.5
+
+# AutoThrottle
+AUTOTHROTTLE_ENABLED = True
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
-
-# Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-#    "Accept-Language": "en",
-#}
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
@@ -64,17 +64,14 @@ ITEM_PIPELINES = {
     "games.pipelines.MongoPipeline": 300,
 }
 
-# Enable and configure the AutoThrottle extension (disabled by default)
+# No CSV/JSON feeds
+FEEDS = {}
+
+# Enable and configure the AutoThrottle extension
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
-# The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
-# The maximum download delay to be set in case of high latencies
 #AUTOTHROTTLE_MAX_DELAY = 60
-# The average number of requests Scrapy should be sending in parallel to
-# each remote server
 #AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
-# Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
@@ -89,5 +86,5 @@ ITEM_PIPELINES = {
 FEED_EXPORT_ENCODING = "utf-8"
 
 # MongoDB connection settings
-MONGO_URI = "mongodb://localhost:27017"
-MONGO_DATABASE = "techtudo"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27019")
+MONGO_DATABASE = "books_db"

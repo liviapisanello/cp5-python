@@ -1,11 +1,14 @@
 import scrapy
 
-class TechTudoJogosSpiderItem(scrapy.Item):
+class BookItem(scrapy.Item):
     title = scrapy.Field()
-    author = scrapy.Field()
-    text = scrapy.Field()
-    link = scrapy.Field()
-    published_date = scrapy.Field()
+    price = scrapy.Field()
+    rating = scrapy.Field()
+    availability = scrapy.Field()
     category = scrapy.Field()
+    description = scrapy.Field()
+    upc = scrapy.Field()
+    num_reviews = scrapy.Field()
+    image_url = scrapy.Field()
+    url = scrapy.Field()
     collected_at = scrapy.Field()
-    source_url = scrapy.Field()

@@ -1,38 +1,29 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-import pymongo
+import os
+from pymongo import MongoClient, UpdateOne
 from itemadapter import ItemAdapter
 
-
 class MongoPipeline:
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            mongo_uri=crawler.settings.get("MONGO_URI", "mongodb://localhost:27017"),
-            mongo_db=crawler.settings.get("MONGO_DATABASE", "techtudo"),
-        )
-
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client[self.mongo_db]
-        # Ensure uniqueness on 'link' to avoid duplicate articles
-        self.db["noticias"].create_index([("link", pymongo.ASCENDING)], unique=True)
+        uri = os.getenv("MONGO_URI", "mongodb://localhost:27019")
+        db_name = spider.settings.get("MONGO_DATABASE", "books_db")
+        self.client = MongoClient(uri)
+        self.db = self.client[db_name]
+        self.collection = self.db["livros"]
+        self.collection.create_index("upc", unique=True)
 
     def close_spider(self, spider):
         self.client.close()
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        self.db["noticias"].update_one(
-            {"link": adapter["link"]},
-            {"$set": dict(adapter)},
-            upsert=True,
-        )
+        doc = dict(adapter)
+        upc = doc.get("upc", "")
+        if upc:
+            self.collection.update_one(
+                {"upc": upc},
+                {"$set": doc},
+                upsert=True
+            )
+        else:
+            self.collection.insert_one(doc)
         return item

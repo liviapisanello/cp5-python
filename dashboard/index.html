@@ -1,627 +1,491 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TechTudo Jogos — Dashboard</title>
-
-  <!-- Bootstrap 5.3.3 -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  />
-  <!-- Bootstrap Icons 1.11.3 -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-  />
-  <!-- Chart.js 4.4.4 -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
-    integrity="sha256-oVuCFnMFR+LFzGPnSODW8EL4wFvSHiPAjVDolZYj0Y="
-    crossorigin="anonymous"
-  ></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Books Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
-    body {
-      background-color: #f8f9fa;
+    :root {
+      --bg-primary: #0f0f1a;
+      --bg-card: #1a1a2e;
+      --bg-card-hover: #1e1e35;
+      --accent-purple: #8b5cf6;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-red: #ef4444;
+      --text-primary: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255,255,255,0.08);
     }
-    .kpi-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      line-height: 1.1;
+    body { background: var(--bg-primary); font-family: 'Inter', sans-serif; color: var(--text-primary); }
+    .navbar-brand { font-weight: 700; font-size: 1.3rem; letter-spacing: -0.02em; }
+    .navbar { background: rgba(15,15,26,0.95) !important; backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: default;
     }
-    .kpi-label {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
+    .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1.2; margin-top: 0.75rem; }
+    .kpi-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
     }
-    .chart-container {
-      position: relative;
-      height: 320px;
+    .chart-title { font-weight: 600; font-size: 1rem; }
+    .chart-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .filter-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
     }
-    .chart-container-wide {
-      position: relative;
-      height: 260px;
+    .form-control, .form-select {
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-primary) !important;
     }
-    #error-toast {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      z-index: 9999;
-      min-width: 320px;
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent-purple) !important;
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important;
     }
-    .table th {
-      white-space: nowrap;
-    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    table { font-size: 0.875rem; }
+    .badge-disponivel { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
+    .badge-indisponivel { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
+    .stars { color: #f59e0b; }
+    .book-thumb { width: 36px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .table { --bs-table-bg: transparent; }
+    .table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .page-link { background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); }
+    .page-link:hover { background: rgba(139,92,246,0.2); border-color: var(--accent-purple); color: var(--accent-purple); }
+    .page-item.active .page-link { background: var(--accent-purple); border-color: var(--accent-purple); }
+    .section-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
+    .gradient-text { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .spinner-overlay { display: flex; align-items: center; justify-content: center; height: 200px; }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">
-        <i class="bi bi-joystick me-2"></i>TechTudo Jogos — Dashboard
-      </span>
-      <span class="text-secondary small" id="last-update"></span>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid px-4">
+      <span class="navbar-brand"><i class="bi bi-book me-2 gradient-text"></i><span class="gradient-text">Books Dashboard</span></span>
+      <span class="text-muted small">books.toscrape.com · 1000 livros · 50 categorias</span>
     </div>
   </nav>
 
-  <div class="container-xl">
-
+  <div class="container-fluid px-4 py-4">
     <!-- KPI Cards -->
+    <p class="section-title">Visão Geral</p>
     <div class="row g-3 mb-4">
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <i class="bi bi-newspaper fs-2 text-primary"></i>
-            <div>
-              <div class="kpi-value text-primary" id="kpi-total">—</div>
-              <div class="kpi-label text-muted">Total de Notícias</div>
-            </div>
-          </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6"><i class="bi bi-book-half"></i></div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-label">Total de Livros</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <i class="bi bi-person-lines-fill fs-2 text-success"></i>
-            <div>
-              <div class="kpi-value text-success" id="kpi-autores">—</div>
-              <div class="kpi-label text-muted">Autores Únicos</div>
-            </div>
-          </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(16,185,129,0.15);color:#10b981"><i class="bi bi-tags"></i></div>
+          <div class="kpi-value" id="kpi-cats">—</div>
+          <div class="kpi-label">Categorias</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <i class="bi bi-tags-fill fs-2 text-warning"></i>
-            <div>
-              <div class="kpi-value text-warning" id="kpi-categorias">—</div>
-              <div class="kpi-label text-muted">Categorias</div>
-            </div>
-          </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b"><i class="bi bi-currency-pound"></i></div>
+          <div class="kpi-value" id="kpi-price">—</div>
+          <div class="kpi-label">Preço Médio</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <i class="bi bi-clock-history fs-2 text-info"></i>
-            <div>
-              <div class="kpi-value text-info fs-5" id="kpi-ultima-coleta">—</div>
-              <div class="kpi-label text-muted">Última Coleta</div>
-            </div>
-          </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6"><i class="bi bi-check-circle"></i></div>
+          <div class="kpi-value" id="kpi-disponivel">—</div>
+          <div class="kpi-label">Disponíveis</div>
         </div>
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-body">
-        <div class="row g-2 align-items-end">
-          <div class="col-12 col-md-4">
-            <label for="busca" class="form-label small fw-semibold">Busca</label>
-            <input
-              type="text"
-              id="busca"
-              class="form-control"
-              placeholder="Pesquisar por título…"
-            />
-          </div>
-          <div class="col-6 col-md-3">
-            <label for="cat-filter" class="form-label small fw-semibold">Categoria</label>
-            <select id="cat-filter" class="form-select">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div class="col-6 col-md-3">
-            <label for="autor-filter" class="form-label small fw-semibold">Autor</label>
-            <select id="autor-filter" class="form-select">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-2 d-grid">
-            <button id="btn-buscar" class="btn btn-primary">
-              <i class="bi bi-search me-1"></i>Buscar
-            </button>
-          </div>
+    <!-- Charts Grid 2x2 -->
+    <p class="section-title">Analytics</p>
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-lg-6">
+        <div class="chart-card">
+          <div class="chart-title">Livros por Categoria</div>
+          <div class="chart-subtitle">Top 15 categorias por volume</div>
+          <canvas id="chart-categorias" height="280"></canvas>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="chart-card">
+          <div class="chart-title">Distribuição de Preços</div>
+          <div class="chart-subtitle">Quantidade de livros por faixa de preço (£)</div>
+          <canvas id="chart-precos" height="280"></canvas>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="chart-card">
+          <div class="chart-title">Distribuição de Avaliações</div>
+          <div class="chart-subtitle">Número de livros por nota (★)</div>
+          <canvas id="chart-ratings" height="280"></canvas>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="chart-card">
+          <div class="chart-title">Top 10 Livros Mais Caros</div>
+          <div class="chart-subtitle">Ranking por preço (£)</div>
+          <canvas id="chart-top-caros" height="280"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Charts Row 1 -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white border-0 fw-semibold">
-            <i class="bi bi-bar-chart-horizontal-fill me-1 text-primary"></i>Top 10 Autores
-          </div>
-          <div class="card-body">
-            <div class="chart-container">
-              <canvas id="chart-autores"></canvas>
-            </div>
+    <!-- Filters -->
+    <p class="section-title">Explorar Acervo</p>
+    <div class="filter-card mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label small text-muted">Buscar título</label>
+          <input type="text" class="form-control" id="f-busca" placeholder="Ex: great expectations">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small text-muted">Categoria</label>
+          <select class="form-select" id="f-categoria">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small text-muted">Rating mínimo</label>
+          <select class="form-select" id="f-rating">
+            <option value="">Qualquer</option>
+            <option value="1">★ 1+</option>
+            <option value="2">★★ 2+</option>
+            <option value="3">★★★ 3+</option>
+            <option value="4">★★★★ 4+</option>
+            <option value="5">★★★★★ 5</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small text-muted">Preço máx (£)</label>
+          <input type="number" class="form-control" id="f-preco" placeholder="Ex: 30">
+        </div>
+        <div class="col-6 col-md-2">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" id="f-disponivel">
+            <label class="form-check-label small" for="f-disponivel">Somente disponíveis</label>
           </div>
         </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white border-0 fw-semibold">
-            <i class="bi bi-pie-chart-fill me-1 text-warning"></i>Distribuição por Categoria
-          </div>
-          <div class="card-body d-flex justify-content-center align-items-center">
-            <div class="chart-container">
-              <canvas id="chart-categorias"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Charts Row 2 — Timeline -->
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white border-0 fw-semibold">
-            <i class="bi bi-graph-up me-1 text-success"></i>Notícias por Dia (últimos 7 dias)
-          </div>
-          <div class="card-body">
-            <div class="chart-container-wide">
-              <canvas id="chart-timeline"></canvas>
-            </div>
-          </div>
+        <div class="col-12 col-md-1">
+          <button class="btn btn-primary w-100" id="btn-buscar"><i class="bi bi-search me-1"></i>Buscar</button>
         </div>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white border-0 fw-semibold">
-        <i class="bi bi-table me-1 text-secondary"></i>Notícias Coletadas
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0" id="tabela-noticias">
-            <thead class="table-light">
-              <tr>
-                <th>Título</th>
-                <th>Autor</th>
-                <th>Categoria</th>
-                <th>Data Publicação</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-body">
-              <tr>
-                <td colspan="4" class="text-center text-muted py-4">Carregando…</td>
-              </tr>
-            </tbody>
-          </table>
+    <div class="chart-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <span class="chart-title">Acervo</span>
+          <span class="text-muted small ms-2" id="table-info"></span>
         </div>
       </div>
-      <!-- Pagination -->
-      <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span class="text-muted small" id="pagination-info">—</span>
-        <div class="d-flex gap-2">
-          <button id="btn-anterior" class="btn btn-sm btn-outline-secondary" disabled>
-            <i class="bi bi-chevron-left"></i> Anterior
-          </button>
-          <button id="btn-proximo" class="btn btn-sm btn-outline-secondary" disabled>
-            Próximo <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="livros-table">
+          <thead>
+            <tr>
+              <th style="width:50px">Capa</th>
+              <th>Título</th>
+              <th>Categoria</th>
+              <th>Preço</th>
+              <th>Avaliação</th>
+              <th>Disponível</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Carregando...</td></tr>
+          </tbody>
+        </table>
       </div>
+      <nav aria-label="Paginação">
+        <ul class="pagination justify-content-center mb-0" id="pagination"></ul>
+      </nav>
     </div>
   </div>
 
-  <!-- Error Toast -->
-  <div id="error-toast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body" id="error-toast-message">Erro ao comunicar com a API.</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
-    </div>
-  </div>
-
-  <!-- Bootstrap 5.3.3 JS -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmKBCOaFo8ciZKwHAVCQbmqfgvJT"
-    crossorigin="anonymous"
-  ></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    'use strict';
-
-    // -------------------------------------------------------------------------
-    // Configuration
-    // -------------------------------------------------------------------------
     const API_BASE = 'http://localhost:8000';
+    let currentPage = 1;
+    const PAGE_SIZE = 20;
 
-    // -------------------------------------------------------------------------
-    // State
-    // -------------------------------------------------------------------------
-    window.currentPage = 1;
-    window.totalPages = 1;
+    // Chart instances
+    let charts = {};
 
-    // Chart instances (kept so they can be destroyed on re-render)
-    let chartAutores = null;
-    let chartCategorias = null;
-    let chartTimeline = null;
-
-    // -------------------------------------------------------------------------
-    // Utilities
-    // -------------------------------------------------------------------------
-    function showError(message) {
-      const toastEl = document.getElementById('error-toast');
-      document.getElementById('error-toast-message').textContent = message;
-      const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-      toast.show();
+    // Gradient helper
+    function makeGradient(ctx, color1, color2) {
+      const g = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+      g.addColorStop(0, color1);
+      g.addColorStop(1, color2);
+      return g;
     }
 
     async function apiFetch(path) {
-      const url = API_BASE + path;
-      let response;
-      try {
-        response = await fetch(url);
-      } catch (err) {
-        throw new Error(`Falha de rede ao acessar ${url}: ${err.message}`);
-      }
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status} ao acessar ${url}`);
-      }
-      return response.json();
+      const r = await fetch(API_BASE + path);
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
     }
 
-    function formatDate(isoString) {
-      if (!isoString) return '—';
-      try {
-        return new Date(isoString).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
-      } catch {
-        return isoString;
-      }
-    }
-
-    function formatDateTime(isoString) {
-      if (!isoString) return '—';
-      try {
-        return new Date(isoString).toLocaleString('pt-BR');
-      } catch {
-        return isoString;
-      }
-    }
-
-    // -------------------------------------------------------------------------
-    // KPI Cards
-    // -------------------------------------------------------------------------
+    // Load KPIs
     async function loadStats() {
       try {
-        const stats = await apiFetch('/noticias/stats');
-        document.getElementById('kpi-total').textContent =
-          stats.total !== undefined ? stats.total.toLocaleString('pt-BR') : '—';
-        document.getElementById('kpi-autores').textContent =
-          stats.unique_authors !== undefined ? stats.unique_authors : '—';
-        document.getElementById('kpi-categorias').textContent =
-          stats.unique_categories !== undefined ? stats.unique_categories : '—';
-        document.getElementById('kpi-ultima-coleta').textContent =
-          formatDateTime(stats.last_collected_at);
-        document.getElementById('last-update').textContent =
-          'Atualizado em ' + new Date().toLocaleTimeString('pt-BR');
-      } catch (err) {
-        showError('Não foi possível carregar estatísticas: ' + err.message);
-      }
+        const s = await apiFetch('/livros/stats');
+        document.getElementById('kpi-total').textContent = s.total.toLocaleString('pt-BR');
+        document.getElementById('kpi-cats').textContent = s.total_categorias;
+        document.getElementById('kpi-price').textContent = '£' + s.media_preco.toFixed(2);
+        document.getElementById('kpi-disponivel').textContent = s.total_disponivel.toLocaleString('pt-BR');
+      } catch(e) { console.error('stats error', e); }
     }
 
-    // -------------------------------------------------------------------------
-    // Filter selects
-    // -------------------------------------------------------------------------
-    async function loadFilters() {
+    // Load categories for filter
+    async function loadCategorias() {
       try {
-        const [categorias, autores] = await Promise.all([
-          apiFetch('/noticias/categorias'),
-          apiFetch('/noticias/autores'),
-        ]);
-
-        const catSel = document.getElementById('cat-filter');
-        categorias.forEach((c) => {
-          if (!c) return;
+        const cats = await apiFetch('/livros/categorias');
+        const sel = document.getElementById('f-categoria');
+        cats.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          catSel.appendChild(opt);
+          opt.value = c; opt.textContent = c;
+          sel.appendChild(opt);
         });
-
-        const autorSel = document.getElementById('autor-filter');
-        autores.forEach((a) => {
-          if (!a) return;
-          const opt = document.createElement('option');
-          opt.value = a;
-          opt.textContent = a;
-          autorSel.appendChild(opt);
-        });
-      } catch (err) {
-        showError('Não foi possível carregar filtros: ' + err.message);
-      }
+      } catch(e) { console.error('categorias error', e); }
     }
 
-    // -------------------------------------------------------------------------
-    // Charts
-    // -------------------------------------------------------------------------
-    const PALETTE = [
-      '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f',
-      '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ac',
-    ];
-
-    async function loadCharts() {
-      let items = [];
+    // Chart: Livros por Categoria
+    async function loadChartCategorias() {
       try {
-        const data = await apiFetch('/noticias?size=500');
-        items = data.items || [];
-      } catch (err) {
-        showError('Não foi possível carregar dados para os gráficos: ' + err.message);
-        return;
-      }
-
-      buildChartAutores(items);
-      buildChartCategorias(items);
-      buildChartTimeline(items);
+        const data = await apiFetch('/livros/charts/por-categoria');
+        const top15 = data.slice(0, 15);
+        const ctx = document.getElementById('chart-categorias').getContext('2d');
+        if (charts.categorias) charts.categorias.destroy();
+        charts.categorias = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: top15.map(d => d.categoria),
+            datasets: [{
+              label: 'Livros',
+              data: top15.map(d => d.total),
+              backgroundColor: top15.map((_, i) => `hsla(${260 + i * 6}, 70%, 60%, 0.8)`),
+              borderColor: top15.map((_, i) => `hsla(${260 + i * 6}, 70%, 60%, 1)`),
+              borderWidth: 1,
+              borderRadius: 4,
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+              y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+            }
+          }
+        });
+      } catch(e) { console.error('chart categorias error', e); }
     }
 
-    function buildChartAutores(items) {
-      // Count articles per author, show top 10
-      const counts = {};
-      items.forEach((item) => {
-        const a = item.author || 'Desconhecido';
-        counts[a] = (counts[a] || 0) + 1;
-      });
-      const sorted = Object.entries(counts)
-        .sort((x, y) => y[1] - x[1])
-        .slice(0, 10);
-      const labels = sorted.map(([name]) => name);
-      const values = sorted.map(([, count]) => count);
-
-      const ctx = document.getElementById('chart-autores').getContext('2d');
-      if (chartAutores) chartAutores.destroy();
-      chartAutores = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Artigos',
-              data: values,
-              backgroundColor: PALETTE,
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
+    // Chart: Distribuição de Preços
+    async function loadChartPrecos() {
+      try {
+        const data = await apiFetch('/livros/charts/distribuicao-preco');
+        const ctx = document.getElementById('chart-precos').getContext('2d');
+        const colors = ['#3b82f6','#6366f1','#8b5cf6','#a855f7','#c084fc','#d8b4fe'];
+        if (charts.precos) charts.precos.destroy();
+        charts.precos = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.map(d => d.faixa),
+            datasets: [{
+              label: 'Livros',
+              data: data.map(d => d.total),
+              backgroundColor: colors,
+              borderColor: colors,
+              borderWidth: 1,
+              borderRadius: 6,
+            }]
           },
-          scales: {
-            x: { ticks: { precision: 0 } },
-          },
-        },
-      });
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+            }
+          }
+        });
+      } catch(e) { console.error('chart precos error', e); }
     }
 
-    function buildChartCategorias(items) {
-      const counts = {};
-      items.forEach((item) => {
-        const c = item.category || 'Sem categoria';
-        counts[c] = (counts[c] || 0) + 1;
-      });
-      const labels = Object.keys(counts);
-      const values = Object.values(counts);
-
-      const ctx = document.getElementById('chart-categorias').getContext('2d');
-      if (chartCategorias) chartCategorias.destroy();
-      chartCategorias = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [
-            {
-              data: values,
-              backgroundColor: PALETTE,
+    // Chart: Distribuição de Ratings
+    async function loadChartRatings() {
+      try {
+        const data = await apiFetch('/livros/charts/por-rating');
+        const colorMap = { 1: '#ef4444', 2: '#f97316', 3: '#eab308', 4: '#84cc16', 5: '#10b981' };
+        const labels = [1,2,3,4,5];
+        const totals = labels.map(r => { const found = data.find(d => d.rating === r); return found ? found.total : 0; });
+        const ctx = document.getElementById('chart-ratings').getContext('2d');
+        if (charts.ratings) charts.ratings.destroy();
+        charts.ratings = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels.map(r => '★'.repeat(r) + ' (' + r + ')'),
+            datasets: [{
+              label: 'Livros',
+              data: totals,
+              backgroundColor: labels.map(r => colorMap[r] + 'cc'),
+              borderColor: labels.map(r => colorMap[r]),
               borderWidth: 2,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+              borderRadius: 6,
+            }]
           },
-        },
-      });
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+            }
+          }
+        });
+      } catch(e) { console.error('chart ratings error', e); }
     }
 
-    function buildChartTimeline(items) {
-      // Build last-7-days date range
-      const today = new Date();
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        days.push(d.toISOString().slice(0, 10));
-      }
-
-      const counts = {};
-      days.forEach((d) => (counts[d] = 0));
-      items.forEach((item) => {
-        const raw = item.published_date || item.collected_at || '';
-        const day = raw.slice(0, 10);
-        if (day in counts) counts[day]++;
-      });
-
-      const labels = days.map((d) =>
-        new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-        })
-      );
-      const values = days.map((d) => counts[d]);
-
-      const ctx = document.getElementById('chart-timeline').getContext('2d');
-      if (chartTimeline) chartTimeline.destroy();
-      chartTimeline = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Notícias',
-              data: values,
-              fill: true,
-              backgroundColor: 'rgba(78,121,167,0.15)',
-              borderColor: '#4e79a7',
-              pointBackgroundColor: '#4e79a7',
-              tension: 0.3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
+    // Chart: Top 10 Mais Caros
+    async function loadChartTopCaros() {
+      try {
+        const data = await apiFetch('/livros/charts/top-caros');
+        const ctx = document.getElementById('chart-top-caros').getContext('2d');
+        if (charts.topCaros) charts.topCaros.destroy();
+        charts.topCaros = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.map(d => d.title.length > 28 ? d.title.slice(0,28) + '…' : d.title),
+            datasets: [{
+              label: 'Preço (£)',
+              data: data.map(d => d.price),
+              backgroundColor: data.map((_, i) => `hsla(${280 - i * 8}, 70%, 55%, 0.8)`),
+              borderColor: data.map((_, i) => `hsla(${280 - i * 8}, 70%, 55%, 1)`),
+              borderWidth: 1,
+              borderRadius: 4,
+            }]
           },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } },
-          },
-        },
-      });
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '£' + v } },
+              y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+            }
+          }
+        });
+      } catch(e) { console.error('chart top caros error', e); }
     }
 
-    // -------------------------------------------------------------------------
-    // Table + Pagination
-    // -------------------------------------------------------------------------
+    // Stars helper
+    function renderStars(rating) {
+      return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    }
+
+    // Load table
     async function loadTable(page = 1) {
-      window.currentPage = page;
+      currentPage = page;
+      const busca = document.getElementById('f-busca').value.trim();
+      const categoria = document.getElementById('f-categoria').value;
+      const rating = document.getElementById('f-rating').value;
+      const preco = document.getElementById('f-preco').value;
+      const disponivel = document.getElementById('f-disponivel').checked;
 
-      const busca = document.getElementById('busca').value.trim();
-      const categoria = document.getElementById('cat-filter').value;
-      const autor = document.getElementById('autor-filter').value;
+      let qs = `?page=${page}&size=${PAGE_SIZE}`;
+      if (busca) qs += `&busca=${encodeURIComponent(busca)}`;
+      if (categoria) qs += `&categoria=${encodeURIComponent(categoria)}`;
+      if (rating) qs += `&rating_min=${rating}`;
+      if (preco) qs += `&preco_max=${preco}`;
+      if (disponivel) qs += `&disponivel=true`;
 
-      const params = new URLSearchParams({ page, size: 20 });
-      if (busca) params.set('busca', busca);
-      if (categoria) params.set('categoria', categoria);
-      if (autor) params.set('autor', autor);
-
-      const tbody = document.getElementById('tabela-body');
-      tbody.innerHTML =
-        '<tr><td colspan="4" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Carregando…</td></tr>';
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-hourglass-split me-2"></i>Carregando...</td></tr>';
 
       try {
-        const data = await apiFetch('/noticias?' + params.toString());
-        const items = data.items || [];
-        const total = data.total || 0;
-        const size = data.size || 20;
-        window.totalPages = Math.max(1, Math.ceil(total / size));
+        const data = await apiFetch('/livros' + qs);
+        document.getElementById('table-info').textContent = `${data.total.toLocaleString('pt-BR')} livros encontrados`;
 
-        if (items.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="4" class="text-center text-muted py-4">Nenhuma notícia encontrada.</td></tr>';
-        } else {
-          tbody.innerHTML = items
-            .map(
-              (item) => `
-            <tr>
-              <td>
-                ${
-                  item.link
-                    ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || '—')}</a>`
-                    : escapeHtml(item.title || '—')
-                }
-              </td>
-              <td>${escapeHtml(item.author || '—')}</td>
-              <td>${item.category ? `<span class="badge text-bg-secondary">${escapeHtml(item.category)}</span>` : '—'}</td>
-              <td>${formatDate(item.published_date)}</td>
-            </tr>`
-            )
-            .join('');
+        if (data.items.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-search me-2"></i>Nenhum livro encontrado</td></tr>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
         }
 
-        // Update pagination controls
-        document.getElementById('pagination-info').textContent =
-          `Página ${window.currentPage} de ${window.totalPages} — ${total.toLocaleString('pt-BR')} registros`;
-        document.getElementById('btn-anterior').disabled = window.currentPage <= 1;
-        document.getElementById('btn-proximo').disabled =
-          window.currentPage >= window.totalPages;
-      } catch (err) {
-        tbody.innerHTML =
-          '<tr><td colspan="4" class="text-center text-danger py-4">Erro ao carregar dados.</td></tr>';
-        showError('Erro ao carregar tabela: ' + err.message);
+        tbody.innerHTML = data.items.map(b => `
+          <tr>
+            <td><img src="${b.image_url || ''}" class="book-thumb" onerror="this.style.display='none'" alt="capa"></td>
+            <td><a href="${b.url || '#'}" target="_blank" class="text-decoration-none text-light fw-500">${b.title}</a></td>
+            <td><span class="text-muted">${b.category || ''}</span></td>
+            <td class="fw-600" style="color:#f59e0b">£${(b.price || 0).toFixed(2)}</td>
+            <td class="stars">${renderStars(b.rating || 0)}</td>
+            <td>${b.availability ? '<span class="badge-disponivel">Em stock</span>' : '<span class="badge-indisponivel">Esgotado</span>'}</td>
+          </tr>
+        `).join('');
+
+        renderPagination(data.total, page);
+      } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>${e.message}</td></tr>`;
       }
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    function renderPagination(total, page) {
+      const pages = Math.ceil(total / PAGE_SIZE);
+      const ul = document.getElementById('pagination');
+      if (pages <= 1) { ul.innerHTML = ''; return; }
+      let html = '';
+      const maxLinks = 5;
+      let start = Math.max(1, page - 2);
+      let end = Math.min(pages, start + maxLinks - 1);
+      if (end - start < maxLinks - 1) start = Math.max(1, end - maxLinks + 1);
+      html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadTable(${page - 1});return false;"><i class="bi bi-chevron-left"></i></a></li>`;
+      for (let p = start; p <= end; p++) {
+        html += `<li class="page-item ${p === page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadTable(${p});return false;">${p}</a></li>`;
+      }
+      html += `<li class="page-item ${page === pages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadTable(${page + 1});return false;"><i class="bi bi-chevron-right"></i></a></li>`;
+      ul.innerHTML = html;
     }
 
-    // -------------------------------------------------------------------------
-    // Event Listeners
-    // -------------------------------------------------------------------------
     document.getElementById('btn-buscar').addEventListener('click', () => loadTable(1));
-    document.getElementById('busca').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') loadTable(1);
-    });
-    document.getElementById('btn-anterior').addEventListener('click', () => {
-      if (window.currentPage > 1) loadTable(window.currentPage - 1);
-    });
-    document.getElementById('btn-proximo').addEventListener('click', () => {
-      if (window.currentPage < window.totalPages) loadTable(window.currentPage + 1);
-    });
+    document.getElementById('f-busca').addEventListener('keydown', e => { if (e.key === 'Enter') loadTable(1); });
 
-    // -------------------------------------------------------------------------
-    // Bootstrap re-filter on select change
-    // -------------------------------------------------------------------------
-    document.getElementById('cat-filter').addEventListener('change', () => loadTable(1));
-    document.getElementById('autor-filter').addEventListener('change', () => loadTable(1));
-
-    // -------------------------------------------------------------------------
-    // Bootstrap
-    // -------------------------------------------------------------------------
-    document.addEventListener('DOMContentLoaded', () => {
-      Promise.all([loadStats(), loadFilters(), loadCharts(), loadTable(1)]);
-    });
+    // Init
+    (async () => {
+      await Promise.all([
+        loadStats(),
+        loadCategorias(),
+        loadChartCategorias(),
+        loadChartPrecos(),
+        loadChartRatings(),
+        loadChartTopCaros(),
+        loadTable(1)
+      ]);
+    })();
   </script>
 </body>
 </html>
