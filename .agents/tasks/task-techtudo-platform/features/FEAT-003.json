@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Create dashboard/index.html (single-file vanilla HTML/CSS/JS dashboard) and root requirements.txt and updated README.md. Dashboard consumes API at http://localhost:8000. Independent from FEAT-001 in code, but logically depends on FEAT-002 API endpoint shapes being defined.",
+  "status": "completed",
+  "steps": [
+    "Create dashboard/ directory",
+    "Create dashboard/index.html as a complete single-file dashboard. Include CDN links in <head>: Bootstrap 5.3.3 CSS, Bootstrap Icons 1.11.3, Chart.js 4.4.4. Structure: (1) navbar with title 'TechTudo Jogos — Dashboard'; (2) container with row of 4 KPI cards (Total de Notícias, Autores Únicos, Categorias, Última Coleta) — each as Bootstrap card with large number and icon; (3) row with filter bar: text input id='busca', select id='cat-filter', select id='autor-filter', button 'Buscar'; (4) row with 2 cols: col-md-6 canvas id='chart-autores' (horizontal bar, Top 10 Autores), col-md-6 canvas id='chart-categorias' (doughnut, Distribuição por Categoria); (5) row col-12 canvas id='chart-timeline' (line chart, Notícias por Dia últimos 7 dias); (6) row with table#tabela-noticias: columns Título, Autor, Categoria, Data Publicação; (7) pagination div with buttons Anterior/Próximo and span showing 'Página X de Y'.",
+    "Write JavaScript section in dashboard/index.html: const API_BASE='http://localhost:8000'. async function loadStats(): fetch(API_BASE+'/noticias/stats'), update DOM ids kpi-total, kpi-autores, kpi-categorias, kpi-ultima-coleta. async function loadFilters(): fetch categorias and autores, populate select elements with option tags. async function loadCharts(): (a) fetch /noticias/categorias for doughnut labels then fetch /noticias?size=500 for counts per category; (b) fetch /noticias/autores for top 10 bar chart (count per author from same 500 batch); (c) group same 500 items by date (published_date[:10]) and show last 7 days on line chart. async function loadTable(page=1): uses current filter state from DOM inputs, fetch /noticias?page=PAGE&size=20&busca=B&categoria=C&autor=A, renders <tr> rows with title as <a href=link target=_blank>, updates pagination controls with total pages. window.currentPage=1; window.totalPages=1. Event listeners on Buscar button (loadTable(1)) and pagination buttons. Call Promise.all([loadStats(), loadFilters(), loadCharts(), loadTable(1)]) on DOMContentLoaded.",
+    "Create root requirements.txt with: Scrapy==2.12.0, pymongo==4.10.1, itemadapter==0.10.0",
+    "Rewrite README.md with sections: (1) Descrição: plataforma de coleta de notícias de jogos do techtudo.com.br; (2) Estrutura do Projeto (tree); (3) Estrutura MongoDB (collection noticias, campos com tipos); (4) Instalação (criar venv, pip install -r requirements.txt, pip install -r api/requirements.txt); (5) Execução do Crawler (cd webcrawler && scrapy crawl TechTudoJogos); (6) Execução da API (cd api && uvicorn main:app --reload --port 8000, acesse http://localhost:8000/docs); (7) Execução do Dashboard (python -m http.server 3000 --directory dashboard, acesse http://localhost:3000); (8) Endpoints da API com exemplos de request e response JSON para todos os 6 endpoints; (9) Fluxo completo: Site → Web Crawler (Scrapy) → MongoDB → FastAPI → Dashboard"
+  ],
+  "acceptance_criteria": [
+    "dashboard/index.html exists and contains Chart.js CDN link, Bootstrap CDN link, and API_BASE variable",
+    "dashboard/index.html has canvas elements with ids chart-autores, chart-categorias, chart-timeline",
+    "dashboard/index.html has table#tabela-noticias and pagination controls",
+    "dashboard/index.html has 4 KPI card elements",
+    "requirements.txt exists in project root with Scrapy and pymongo",
+    "README.md has sections for installation, crawler execution, API execution, dashboard execution, and endpoint documentation"
+  ],
+  "verification": [
+    "grep -l 'Chart.js\\|chart.js' dashboard/index.html && echo 'Chart.js found'",
+    "grep -l 'API_BASE' dashboard/index.html && echo 'API_BASE found'",
+    "python -m http.server 3000 --directory dashboard &; sleep 1; curl -s http://localhost:3000/ | grep -q 'TechTudo' && echo 'Dashboard serves OK'; kill %1"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
