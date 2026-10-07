@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Create the FastAPI backend under api/. Three new files: database.py (MongoDB connection), models.py (Pydantic v2 models), main.py (all endpoints). Also create api/requirements.txt. This feature is independent of FEAT-001 (can be implemented in parallel conceptually, but sequentially after FEAT-001 in practice so MongoDB collection schema is known).",
+  "status": "completed",
+  "steps": [
+    "Create api/ directory",
+    "Create api/database.py: import pymongo and os; MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017'); MONGO_DATABASE = os.getenv('MONGO_DATABASE', 'techtudo'); client = MongoClient(MONGO_URI); db = client[MONGO_DATABASE]; def get_collection(): return db['noticias']",
+    "Create api/models.py: use pydantic v2. NoticiaOut model with fields id (str, alias '_id'), title, author, text, link, published_date, category, source_url, collected_at (all Optional[str]), model_config = ConfigDict(populate_by_name=True). Add @field_serializer('id') to convert ObjectId to str. StatsOut model with total (int), unique_authors (int), unique_categories (int), last_collected_at (Optional[str]).",
+    "Create api/main.py: FastAPI app with CORSMiddleware(allow_origins=['*'], allow_methods=['*'], allow_headers=['*']). Import get_collection from database, NoticiaOut and StatsOut from models, ObjectId from bson. Implement GET / returning {'status': 'ok'}. GET /noticias with query params page:int=1, size:int=20, categoria:str=None, autor:str=None, busca:str=None — build filter dict: if busca add {'title': {'$regex': busca, '$options': 'i'}}; if categoria add {'category': categoria}; if autor add {'author': autor}; get total via collection.count_documents(filter); get items via collection.find(filter).skip((page-1)*size).limit(size); return {'total': total, 'page': page, 'size': size, 'items': list of dicts with _id converted to str}. GET /noticias/stats — aggregate to get total, distinct authors count, distinct categories count, max collected_at. GET /noticias/categorias — collection.distinct('category') sorted. GET /noticias/autores — collection.distinct('author') sorted. GET /noticias/{id} — collection.find_one({'_id': ObjectId(id)}) or raise HTTPException(404).",
+    "Create api/requirements.txt with pinned versions: fastapi==0.115.5, uvicorn[standard]==0.32.1, pymongo==4.10.1, python-dotenv==1.0.1, pydantic==2.10.1"
+  ],
+  "acceptance_criteria": [
+    "cd api && python -c \"from database import get_collection; from models import NoticiaOut, StatsOut; import main; print('OK')\" exits without error",
+    "cd api && uvicorn main:app --host 0.0.0.0 --port 8000 starts successfully",
+    "curl http://localhost:8000/ returns {\"status\":\"ok\"}",
+    "curl http://localhost:8000/noticias returns JSON with keys total, page, size, items",
+    "curl http://localhost:8000/noticias/stats returns JSON with keys total, unique_authors, unique_categories, last_collected_at",
+    "curl http://localhost:8000/noticias/categorias returns JSON array",
+    "curl http://localhost:8000/noticias/autores returns JSON array"
+  ],
+  "verification": [
+    "pip install -r api/requirements.txt",
+    "cd api && python -c \"from database import get_collection; from models import NoticiaOut, StatsOut; print('imports OK')\""
+  ],
+  "blocked_reason": null,
+  "findings": "Installed with --break-system-packages (Debian externally-managed env). pymongo upgraded from 4.7.3 to 4.10.1. All four files created: database.py, models.py, main.py, requirements.txt. Import check passed."
+}
