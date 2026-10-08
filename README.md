@@ -1,5 +1,17 @@
 # Books Dashboard — Plataforma de Coleta e Análise de Livros
 
+## Integrantes
+
+Lívia Laur – RM: 569017
+
+Rafael Dias – RM: 570504
+
+Lara Beatriz – RM: 572589
+
+Gustavo Inoue – RM: 570549
+
+Luca Baccari – RM: 569807
+
 ## Descrição
 
 Plataforma de coleta e análise de livros do site [books.toscrape.com](http://books.toscrape.com).
